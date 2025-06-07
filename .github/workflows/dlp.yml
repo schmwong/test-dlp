@@ -28,8 +28,7 @@ jobs:
 
     - name: Get filename
       run: |
-        filename=yt-dlp --get-filename -o "%(fulltitle)s.[%(id)s]" "${{ inputs.url }}"
-        echo "$filename"
+        filename=$(echo yt-dlp --get-filename -o "%(fulltitle)s.[%(id)s]" "${{ inputs.url }}")
         echo "$filename" >> $GITHUB_ENV
 
     - name: Download media
