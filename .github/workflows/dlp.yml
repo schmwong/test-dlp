@@ -1,0 +1,52 @@
+name: dlp
+
+# Controls when the action will run. Workflow runs when manually triggered using the UI
+# or API.
+on:
+  workflow_dispatch:
+  
+    inputs:
+      url:
+        description: 'Paste Streaming URL here.'
+        required: true
+        type: string
+      format:
+        description: 'Select audio only or video.'
+        required: true
+        type: choice
+        options:
+          - audio (mp3)
+          - video (mp4)
+
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Setup yt-dlp
+      uses: AnimMouse/setup-yt-dlp@v3
+
+    - name: Get filename
+      run: |
+        filename=yt-dlp --get-filename -o "%(fulltitle)s [%(id)s]" "${{ inputs.url }}"
+        echo "$filename"
+        echo "$filename" >> $GITHUB_ENV
+
+    - name: Download media
+      run: |
+        if [ ${{ inputs.format }} == "audio (mp3)" ]; then
+          yt-dlp -f bestaudio --extract-audio --audio-quality 0 --audio-format mp3 --embed-metadata "${{ inputs.url }}"
+        elif [ ${{ inputs.format }} == "video (mp4)" ]; then
+          yt-dlp -S res,ext:mp4:m4a --recode mp4 --embed-metadata "${{ inputs.url }}"
+        fi
+      
+    - name: Upload media files as GitHub Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: "$filename"
+        path: |
+          *.mp3
+          *.mp4
+        compression-level: 0
+        retention-days: 90
+        
