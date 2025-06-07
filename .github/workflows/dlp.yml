@@ -28,7 +28,7 @@ jobs:
 
     - name: Get filename
       run: |
-        filename=yt-dlp --get-filename -o "%(fulltitle)s [%(id)s]" "${{ inputs.url }}"
+        filename=yt-dlp --get-filename -o "%(fulltitle)s.[%(id)s]" "${{ inputs.url }}"
         echo "$filename"
         echo "$filename" >> $GITHUB_ENV
 
@@ -36,14 +36,16 @@ jobs:
       run: |
         if [ ${{ inputs.format }} == "audio (mp3)" ]; then
           yt-dlp -f bestaudio --extract-audio --audio-quality 0 --audio-format mp3 --embed-metadata "${{ inputs.url }}"
+          echo "$ext=.mp3" >> $GITHUB_ENV
         elif [ ${{ inputs.format }} == "video (mp4)" ]; then
           yt-dlp -S res,ext:mp4:m4a --recode mp4 --embed-metadata "${{ inputs.url }}"
+          echo "$ext=.mp4" >> $GITHUB_ENV
         fi
       
     - name: Upload media files as GitHub Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: "$filename"
+        name: "$filename$ext"
         path: |
           *.mp3
           *.mp4
